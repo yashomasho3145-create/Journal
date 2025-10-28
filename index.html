@@ -1,327 +1,490 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <!-- ========== [HEAD] ページのメタ情報 ========== -->
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <!-- ========== [HEAD] ページのメタ情報 ========== -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
 
-  <!-- タブのアイコン（SVG絵文字をデータURIで直接埋め込み） -->
-  <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>📌</text></svg>">
+    <!-- タブのアイコン（SVG絵文字をデータURIで直接埋め込み） -->
+    <link rel="icon"
+          href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>📌</text></svg>">
 
-  <title>ジャーナル</title>
+    <title>ジャーナル</title>
 
-  <!-- ========== [STYLE] 全体の配色・レイアウト ========== -->
-  <style>
-    :root { --bg:#f6f7fb; --card:#fff; --ink:#222; --acc:#2563eb; --mut:#6b7280; }
-    body { font-family: "Hiragino Sans","Noto Sans JP",system-ui,sans-serif; background: var(--bg); color: var(--ink); margin: 24px; }
-    h1 { text-align:center; margin: 8px 0 20px; }
-    .wrap { max-width: 760px; margin: 0 auto; display: grid; gap: 16px; }
-    .card { background: var(--card); border-radius: 16px; box-shadow: 0 6px 20px rgba(0,50,50,.06); padding: 18px; }
-    .row { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 10px; margin-bottom: 12px; }
-    label { font-weight: 700; font-size: 14px; }
-    .val { min-width: 48px; text-align: right; font-feature-settings: "tnum"; color: var(--acc); font-weight: 700; }
-    input[type="date"], select, textarea { width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 10px; outline: none; background:#fff; }
-    input[type="range"] { width: 100%; }
-    textarea { min-height: 120px; resize: vertical; }
-    .hint { color: var(--mut); font-size: 12px; margin-top: -6px; margin-bottom: 8px;}
-    .btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    button { padding: 12px; border-radius: 12px; border: 0; font-weight: 700; cursor: pointer; }
-    .primary { background: var(--acc); color: #fff; }
-    .ghost { background: #e5efff; color: #1e40af; }
-    .ok { color: #16a34a; margin-left: 6px; font-weight: 700; }
-    .err { color: #b91c1c; margin-left: 6px; font-weight: 700; }
-    .tag { display:inline-flex; align-items:center; gap:8px; font-size:12px; color:#334155; background:#eef2ff; border:1px solid #c7d2fe; padding:6px 10px; border-radius:999px;}
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; white-space: pre-wrap; }
-  </style>
+    <!-- ========== [STYLE] 全体の配色・レイアウト ========== -->
+    <style>
+        :root {
+            --bg: #f6f7fb;
+            --card: #fff;
+            --ink: #222;
+            --acc: #2563eb;
+            --mut: #6b7280;
+        }
 
-  <!-- ========== [SCRIPT] LINE LIFF SDKの読み込み ========== -->
-  <!-- 必ず https から配信される必要があります（LIFFの仕様） -->
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+        body {
+            font-family: "Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+            margin: 24px;
+        }
+
+        h1 {
+            text-align: center;
+            margin: 8px 0 20px;
+        }
+
+        .wrap {
+            max-width: 760px;
+            margin: 0 auto;
+            display: grid;
+            gap: 16px;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(0,50,50,.06);
+            padding: 18px;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: end;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        label {
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .val {
+            min-width: 48px;
+            text-align: right;
+            font-feature-settings: "tnum";
+            color: var(--acc);
+            font-weight: 700;
+        }
+
+        input[type="date"], select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            outline: none;
+            background: #fff;
+        }
+
+        input[type="range"] {
+            width: 100%;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .hint {
+            color: var(--mut);
+            font-size: 12px;
+            margin-top: -6px;
+            margin-bottom: 8px;
+        }
+
+        .btns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        button {
+            padding: 12px;
+            border-radius: 12px;
+            border: 0;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .primary {
+            background: var(--acc);
+            color: #fff;
+        }
+
+        .ghost {
+            background: #e5efff;
+            color: #1e40af;
+        }
+
+        .ok {
+            color: #16a34a;
+            margin-left: 6px;
+            font-weight: 700;
+        }
+
+        .err {
+            color: #b91c1c;
+            margin-left: 6px;
+            font-weight: 700;
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #334155;
+            background: #eef2ff;
+            border: 1px solid #c7d2fe;
+            padding: 6px 10px;
+            border-radius: 999px;
+        }
+
+        .mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+    </style>
+
+    <!-- ========== [SCRIPT] LINE LIFF SDKの読み込み ========== -->
+    <!-- 必ず https から配信される必要があります（LIFFの仕様） -->
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
 <body>
-  <!-- ========== [UI] ページタイトル ========== -->
-  <h1>ジャーナル</h1>
+    <!-- ========== [UI] ページタイトル ========== -->
+    <h1>ジャーナル</h1>
 
-  <!-- ========== [UI] コンテンツ全体のラッパ ========== -->
-  <div class="wrap">
+    <!-- ========== [UI] コンテンツ全体のラッパ ========== -->
+    <div class="wrap">
 
-    <!-- ========== [CARD] LIFFの状態とユーザー情報の表示 ========== -->
-    <!-- 目的：LIFFのログイン状態とLINEのユーザーIDをフロントで視認 -->
-    <div class="card" id="who">
-      <span class="tag">🔗 LIFF: <span id="liffState">初期化中…</span></span>
-      <div class="hint" id="profileHint" style="margin-top:8px;">LINEログインが必要です。</div>
-      <div class="mono" id="profileBox" style="display:none;margin-top:6px;"></div>
+        <!-- ========== [CARD] LIFFの状態とユーザー情報の表示 ========== -->
+        <!-- 目的：LIFFのログイン状態とLINEのユーザーIDをフロントで視認 -->
+        <div class="card" id="who">
+            <span class="tag">🔗 LIFF: <span id="liffState">初期化中…</span></span>
+            <div class="hint" id="profileHint" style="margin-top:8px;">LINEログインが必要です。</div>
+            <div class="mono" id="profileBox" style="display:none;margin-top:6px;"></div>
+        </div>
+
+        <!-- ========== [CARD] 🧪 LIFFログイン診断 ========== -->
+        <!-- 目的：LIFFのログイン状態・profile・IDトークンの有効性を一目でチェック -->
+        <div class="card" id="diag">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                <strong>🧪 LIFFログイン診断</strong>
+                <button class="ghost" onclick="runLiffDiagnostics()">再チェック</button>
+            </div>
+            <div class="hint">
+                LIFFのログイン状態・プロフィール・IDトークンの有効期限などを検査します。
+            </div>
+            <div class="mono" id="diagOut">準備中…</div>
+        </div>
+
+        <!-- ========== [CARD] 日付入力 ========== -->
+        <!-- 目的：選択がなければJSTの「今日」で保存 -->
+        <div class="card">
+            <div class="row">
+                <label for="date">📅 日付</label>
+                <input type="date" id="date" />
+            </div>
+            <div class="hint">未選択なら「今日」で保存されます（JST）。</div>
+        </div>
+
+        <!-- ========== [CARD] 数値スライダー群 ========== -->
+        <!-- 目的：満足度・気分・週間スコア（0-10）を記録（テーブルではsatisfaction/mood/weekly_score） -->
+        <div class="card">
+            <div class="row"><label for="energy">💪 今日の行動の満足度（0〜10）</label><div class="val" id="v-satisfaction">5</div></div>
+            <input type="range" id="satisfaction" min="0" max="10" step="1" value="5" oninput="syncValue('satisfaction')">
+
+            <div class="row"><label for="focus">😊 今日の気分（0〜10）</label><div class="val" id="v-mood">5</div></div>
+            <input type="range" id="mood" min="0" max="10" step="1" value="5" oninput="syncValue('mood')">
+
+            <div class="row"><label for="weekly_score">🎯 週間スコア（0〜10）</label><div class="val" id="v-weekly_score">5</div></div>
+            <input type="range" id="weekly_score" min="0" max="10" step="1" value="5" oninput="syncValue('weekly_score')">
+            <div class="hint">DBでは <code>satisfaction / mood / weekly_score</code> に対応。</div>
+        </div>
+
+        <!-- ========== [CARD] イベント選択 + メモ ========== -->
+        <!-- 目的：その日の主な出来事やメモ（discovery） -->
+        <div class="card">
+            <div class="row">
+                <label for="event">🏷️ 主なイベント</label>
+                <select id="event">
+                    <option value="勉強">勉強</option>
+                    <option value="仕事">仕事</option>
+                    <option value="休息">休息</option>
+                    <option value="遊び">遊び</option>
+                    <option value="その他">その他</option>
+                </select>
+            </div>
+            <label for="notes">📝 今日の振り返り</label>
+            <textarea id="notes" placeholder="今日の気分・気づきを自由に書いてください..."></textarea>
+            <div class="hint">メモは最大1000文字で送信（DBカラム: discovery）。</div>
+        </div>
+
+        <!-- ========== [UI] アクションボタン ========== -->
+        <!-- 目的：n8n経由でSupabase保存 / CSVエクスポート -->
+        <div class="btns">
+            <button class="primary" id="saveBtn" onclick="saveJournal()">📤 データベースに保存</button>
+            <button class="ghost" onclick="exportCSV()">⬇️ CSVで保存</button>
+        </div>
+
+        <!-- ========== [UI] ステータス表示 ========== -->
+        <!-- 目的：送信成功/失敗の即時フィードバック -->
+        <div id="status" class="card" style="display:none;"></div>
     </div>
 
-    <!-- ========== [CARD] 日付入力 ========== -->
-    <!-- 目的：選択がなければJSTの「今日」で保存 -->
-    <div class="card">
-      <div class="row">
-        <label for="date">📅 日付</label>
-        <input type="date" id="date" />
-      </div>
-      <div class="hint">未選択なら「今日」で保存されます（JST）。</div>
-    </div>
+    <!-- ========== [SCRIPT] アプリ本体ロジック ========== -->
+    <script>
+        /** ==============================
+         *  0) 設定（LIFF ID / Webhook URL）
+         * ============================== */
+        // LIFFのID（LINE Developersで発行されたものに置き換え可能）
+        const LIFF_ID = "2008372898-2q9qWmxv";
+        // n8nのWebhookエンドポイント（BOTサーバ）— 最終的に /journal にPOST
+        const WEBHOOK_URL = "https://yamasho.xvps.jp/webhook";
 
-    <!-- ========== [CARD] 数値スライダー群 ========== -->
-    <!-- 目的：満足度・気分・週間スコア（0-10）を記録（テーブルではsatisfaction/mood/weekly_score） -->
-    <div class="card">
-      <div class="row"><label for="energy">💪 今日の行動の満足度（0〜10）</label><div class="val" id="v-energy">5</div></div>
-      <input type="range" id="energy" min="0" max="10" step="1" value="5" oninput="syncValue('energy')">
+        /** ==============================
+         *  1) LIFF実行時コンテキスト（状態を保持）
+         * ============================== */
+        const LINE_CONTEXT = {
+            isInClient: false,  // LINEアプリ内で開いているか
+            isLoggedIn: false,  // LIFFログイン状態
+            userId: "",         // LINEのユーザーID
+            displayName: "",    // 表示名
+            pictureUrl: "",     // アイコンURL
+            idToken: "",        // OpenID ConnectのIDトークン
+        };
 
-      <div class="row"><label for="focus">😊 今日の気分（0〜10）</label><div class="val" id="v-focus">5</div></div>
-      <input type="range" id="focus" min="0" max="10" step="1" value="5" oninput="syncValue('focus')">
+        /** ==============================
+         *  2) ユーティリティ関数群
+         * ============================== */
 
-      <div class="row"><label for="satisfaction">🎯 週間スコア（0〜10）</label><div class="val" id="v-satisfaction">5</div></div>
-      <input type="range" id="satisfaction" min="0" max="10" step="1" value="5" oninput="syncValue('satisfaction')">
-      <div class="hint">LISTと同様、0–10の整数で評価。DBでは <code>satisfaction / mood / weekly_score</code> に対応。</div>
-    </div>
+        // JSTの"今日"を YYYY-MM-DD で返す（タイムゾーンズレ対策）
+        function todayJST() {
+            const now = new Date();
+            const jst = new Date(now.getTime() - (now.getTimezoneOffset() + -540) * 60000);
+            return jst.toISOString().slice(0, 10);
+        }
 
-    <!-- ========== [CARD] イベント選択 + メモ ========== -->
-    <!-- 目的：その日の主な出来事やメモ（discovery） -->
-    <div class="card">
-      <div class="row">
-        <label for="event">🏷️ 主なイベント</label>
-        <select id="event">
-          <option value="勉強">勉強</option>
-          <option value="仕事">仕事</option>
-          <option value="休息">休息</option>
-          <option value="遊び">遊び</option>
-          <option value="その他">その他</option>
-        </select>
-      </div>
-      <label for="notes">📝 今日の振り返り</label>
-      <textarea id="notes" placeholder="今日の気分・気づきを自由に書いてください..."></textarea>
-      <div class="hint">メモは最大1000文字で送信（DBカラム: discovery）。</div>
-    </div>
+        // スライダーの現在値を右端の .val に同期表示
+        function syncValue(id) {
+            const map = { satisfaction: 'v-satisfaction', mood: 'v-mood', weekly_score: 'v-weekly_score' };
+            const v = document.getElementById(id).value;
+            const dispId = map[id];
+            if (dispId) document.getElementById(dispId).textContent = v;
+        }
 
-    <!-- ========== [UI] アクションボタン ========== -->
-    <!-- 目的：n8n経由でSupabase保存 / CSVエクスポート -->
-    <div class="btns">
-      <button class="primary" id="saveBtn" onclick="saveJournal()">📤 データベースに保存</button>
-      <button class="ghost" onclick="exportCSV()">⬇️ CSVで保存</button>
-    </div>
+        // 各種入力値の取り出しショートカット
+        const pick = (id) => document.getElementById(id).value;
 
-    <!-- ========== [UI] ステータス表示 ========== -->
-    <!-- 目的：送信成功/失敗の即時フィードバック -->
-    <div id="status" class="card" style="display:none;"></div>
-  </div>
+        /** ==============================
+         *  3) 送信ペイロード作成（n8n→Supabaseへ渡す形）
+         *  - Journalsテーブルのカラムに合わせて命名
+         * ============================== */
+        function buildPayload() {
+            const date = pick("date") || todayJST();
+            const satisfaction = +pick("satisfaction");   // 0-10
+            const mood = +pick("mood");           // 0-10
+            const weekly_score = +pick("weekly_score");   // 0-10
+            const event = pick("event");
+            const notes = pick("notes").trim();
 
-  <!-- ========== [SCRIPT] アプリ本体ロジック ========== -->
-  <script>
-  /** ==============================
-   *  0) 設定（LIFF ID / Webhook URL）
-   * ============================== */
-  // LIFFのID（LINE Developersで発行されたものに置き換え可能）
-  const LIFF_ID = "2008372898-2q9qWmxv";
-  // n8nのWebhookエンドポイント（BOTサーバ）— 最終的に /journal にPOST
-  const WEBHOOK_URL = "https://yamasho.xvps.jp/webhook";
+            return {
+                date,                      // -> journals.date
+                event,                     // -> journals.event
+                notes: notes.slice(0, 1000),// -> journals.notes
+                satisfaction,              // -> journals.satisfaction
+                mood,                      // -> journals.mood
+                weekly_score,              // -> journals.weekly_score
+                // user_id はフロントから直接送らず、LIFF情報を n8n で変換
+                liff: {
+                    isInClient: LINE_CONTEXT.isInClient,
+                    isLoggedIn: LINE_CONTEXT.isLoggedIn,
+                    userId: LINE_CONTEXT.userId,
+                    displayName: LINE_CONTEXT.displayName,
+                }
+            };
+        }
 
-  /** ==============================
-   *  1) LIFF実行時コンテキスト（状態を保持）
-   * ============================== */
-  const LINE_CONTEXT = {
-    isInClient: false,  // LINEアプリ内で開いているか
-    isLoggedIn: false,  // LIFFログイン状態
-    userId: "",         // LINEのユーザーID
-    displayName: "",    // 表示名
-    pictureUrl: "",     // アイコンURL
-    idToken: "",        // OpenID ConnectのIDトークン
-  };
+        /** ==============================
+         *  4) 保存処理（n8n WebhookへPOST）
+         * ============================== */
+        async function saveJournal() {
+            const st = document.getElementById("status");
+            st.style.display = "block";
+            st.textContent = "データベースに送信中…";
 
-  /** ==============================
-   *  2) ユーティリティ関数群
-   * ============================== */
+            const body = buildPayload();
 
-  // JSTの"今日"を YYYY-MM-DD で返す（タイムゾーンズレ対策）
-  function todayJST() {
-    const now = new Date();
-    const jst = new Date(now.getTime() - (now.getTimezoneOffset() + -540) * 60000);
-    return jst.toISOString().slice(0, 10);
-  }
+            try {
+                const res = await fetch(`${WEBHOOK_URL}/journal`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        // idTokenがあればAuthorizationに付与（n8nで検証可能）
+                        ...(LINE_CONTEXT.idToken ? { "Authorization": `Bearer ${LINE_CONTEXT.idToken}` } : {}),
+                        // 便宜ヘッダ：n8n側でのトレース/検証に使用
+                        "x-liff-user-id": LINE_CONTEXT.userId || "",
+                        "x-liff-client": LINE_CONTEXT.isInClient ? "1" : "0",
+                    },
+                    body: JSON.stringify(body)
+                });
 
-  // スライダーの現在値を右端の .val に同期表示
-  function syncValue(id) {
-    const map = { energy: 'v-energy', focus: 'v-focus', satisfaction: 'v-satisfaction' };
-    const v = document.getElementById(id).value;
-    const dispId = map[id];
-    if (dispId) document.getElementById(dispId).textContent = v;
-  }
+                if (!res.ok) throw new Error("HTTP " + res.status);
+                await res.text(); // 返却本文は使わない（200系なら成功扱い）
 
-  // 各種入力値の取り出しショートカット
-  const pick = (id) => document.getElementById(id).value;
+                st.innerHTML = `✅ 保存完了 <span class="ok">OK</span>`;
 
-  /** ==============================
-   *  3) 送信ペイロード作成（n8n→Supabaseへ渡す形）
-   *  - Journalsテーブルのカラムに合わせて命名
-   * ============================== */
-  function buildPayload() {
-    const date = pick("date") || todayJST();
-    const satisfaction = +pick("energy");       // 💪 満足度 (0-10)
-    const mood         = +pick("focus");        // 😊 気分 (0-10)
-    const weekly_score = +pick("satisfaction"); // 🎯 週間スコア (0-10)
-    const event        = pick("event");
-    const notes        = pick("notes").trim();
+                // LINEアプリ内で開いている場合は軽い完了メッセージを送信
+                if (liff.isInClient && liff.sendMessages) {
+                    try {
+                        await liff.sendMessages([{ type: "text", text: `ジャーナル保存：${body.date}` }]);
+                    } catch (_) { /* 送信失敗は無視 */ }
+                }
+            } catch (e) {
+                st.innerHTML = `⚠️ 保存失敗 <span class="err">${e.message}</span>
+                <div class="hint">n8n Webhook / LIFFのscope（profile, openid）とChannel設定を確認してください。</div>`;
+                console.error(e);
+            }
+        }
 
-    return {
-      // 任意項目：受け側（n8n）でcreated_atへ寄せるときに使える
-      date,
-      // タイトルは主イベントを短縮して10文字以内に（DB側のチェックに合わせる）
-      title: (event || "ジャーナル").slice(0, 10),
-      // 数値系（DB: int 0–10）
-      satisfaction,
-      mood,
-      weekly_score,
-      // テキスト（DB: discovery）
-      discovery: notes.slice(0, 1000),
-      // 送信元のLIFF情報（n8nで user_id 紐付け等に利用）
-      liff: {
-        isInClient: LINE_CONTEXT.isInClient,
-        isLoggedIn: LINE_CONTEXT.isLoggedIn,
-        userId: LINE_CONTEXT.userId,
-        displayName: LINE_CONTEXT.displayName,
-      }
-    };
-  }
 
-  /** ==============================
-   *  4) 保存処理（n8n WebhookへPOST）
-   * ============================== */
-  async function saveJournal() {
-    const st = document.getElementById("status");
-    st.style.display = "block";
-    st.textContent = "データベースに送信中…";
+        /** ==============================
+         *  6) LIFF初期化（ログイン→プロフィール取得）
+         * ============================== */
+        async function initLiff() {
+            const stateEl = document.getElementById("liffState");
+            const profileBox = document.getElementById("profileBox");
+            const profileHint = document.getElementById("profileHint");
 
-    const body = buildPayload();
+            try {
+                // LIFF初期化
+                await liff.init({ liffId: LIFF_ID });
 
-    try {
-      const res = await fetch(`${WEBHOOK_URL}/journal`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          // idTokenがあればAuthorizationに付与（n8nで検証可能）
-          ...(LINE_CONTEXT.idToken ? { "Authorization": `Bearer ${LINE_CONTEXT.idToken}` } : {}),
-          // 便宜ヘッダ：n8n側でのトレース/検証に使用
-          "x-liff-user-id": LINE_CONTEXT.userId || "",
-          "x-liff-client": LINE_CONTEXT.isInClient ? "1" : "0",
-        },
-        body: JSON.stringify(body)
-      });
+                // 実行コンテキストを取得
+                LINE_CONTEXT.isInClient = liff.isInClient();
+                LINE_CONTEXT.isLoggedIn = liff.isLoggedIn();
+                stateEl.textContent = `OK / inClient=${LINE_CONTEXT.isInClient} / loggedIn=${LINE_CONTEXT.isLoggedIn}`;
 
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      await res.text(); // 返却本文は使わない（200系なら成功扱い）
+                // 未ログインであればLIFFログインへ誘導（戻り先は自動）
+                if (!LINE_CONTEXT.isLoggedIn) {
+                    liff.login({});
+                    return; // ここで一旦終了（ログイン後に再度読み込みがかかる）
+                }
 
-      st.innerHTML = `✅ 保存完了 <span class="ok">OK</span>`;
+                // プロフィール取得（scope: profile が必要）
+                try {
+                    const prof = await liff.getProfile();
+                    LINE_CONTEXT.userId = prof.userId || "";
+                    LINE_CONTEXT.displayName = prof.displayName || "";
+                    LINE_CONTEXT.pictureUrl = prof.pictureUrl || "";
+                } catch (e) {
+                    console.warn("getProfile failed:", e);
+                }
 
-      // LINEアプリ内で開いている場合は軽い完了メッセージを送信
-      if (liff.isInClient && liff.sendMessages) {
-        try {
-          await liff.sendMessages([{ type: "text", text: `ジャーナル保存：${body.date}` }]);
-        } catch (_) { /* 送信失敗は無視 */ }
-      }
-    } catch (e) {
-      st.innerHTML = `⚠️ 保存失敗 <span class="err">${e.message}</span>
-        <div class="hint">n8n Webhook / LIFFのscope（profile, openid）とChannel設定を確認してください。</div>`;
-      console.error(e);
-    }
-  }
+                // OpenIDのIDトークン（scope: openid が必要）
+                LINE_CONTEXT.idToken = liff.getIDToken() || "";
 
-  /** ==============================
-   *  5) CSVエクスポート（ローカルダウンロード）
-   * ============================== */
-  function exportCSV() {
-    const headers = ["date","satisfaction","mood","weekly_score","event","discovery","userId"];
-    const p = buildPayload();
-    // 表示上のイベント値（titleの元）もCSVに含めたいのでeventも吐き出す
-    const row = [
-      p.date,
-      p.satisfaction,
-      p.mood,
-      p.weekly_score,
-      (pick("event") || ""),
-      // 改行はスペースに置換
-      (p.discovery || "").replace(/\n/g, " "),
-      (LINE_CONTEXT.userId || "")
-    ];
-    const csv = headers.join(",") + "\n" + row.map((v) => {
-      // CSV安全化：カンマ/改行/ダブルクォートを含む場合は引用
-      const s = String(v ?? "");
-      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-    }).join(",");
+                // 画面表示の整備
+                if (LINE_CONTEXT.userId) {
+                    profileBox.style.display = "block";
+                    profileHint.textContent = "LINE連携OK。保存時に userId / idToken を送信します。";
+                    profileBox.textContent =
+                        `userId: ${LINE_CONTEXT.userId}\n` +
+                        `name  : ${LINE_CONTEXT.displayName}\n` +
+                        `inApp : ${LINE_CONTEXT.isInClient}\n` +
+                        `idToken(head): ${LINE_CONTEXT.idToken ? LINE_CONTEXT.idToken.slice(0, 20) + '...' : '(none)'}`;
+                }
+            } catch (e) {
+                stateEl.textContent = "初期化エラー";
+                console.error("LIFF init error:", e);
+            }
+        }
 
-    const blob = new Blob([csv], { type: "text/csv" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `journal_${p.date}.csv`;
-    a.click();
-  }
+        /** ==============================
+         *  7) 初期セットアップ（ページ読込時）
+         * ============================== */
+        // 日付の初期値をJSTの今日にセット
+        document.getElementById("date").value = todayJST();
+        // 右肩の数値表示を初期値に同期
+        ["satisfaction", "mood", "weekly_score"].forEach(syncValue);
+        // LIFFを初期化
+        initLiff();
 
-  /** ==============================
-   *  6) LIFF初期化（ログイン→プロフィール取得）
-   * ============================== */
-  async function initLiff() {
-    const stateEl = document.getElementById("liffState");
-    const profileBox = document.getElementById("profileBox");
-    const profileHint = document.getElementById("profileHint");
+        /** ==============================
+ *  8) LIFFログイン診断機能
+ * ============================== */
 
-    try {
-      // LIFF初期化
-      await liff.init({ liffId: LIFF_ID });
+        // JWTの中身を簡易的に読む（署名検証はしない）
+        function decodeJwtPayload(idToken) {
+            try {
+                const base = idToken.split('.')[1];
+                const json = atob(base.replace(/-/g, '+').replace(/_/g, '/'));
+                return JSON.parse(decodeURIComponent(escape(json)));
+            } catch { return null; }
+        }
 
-      // 実行コンテキストを取得
-      LINE_CONTEXT.isInClient = liff.isInClient();
-      LINE_CONTEXT.isLoggedIn = liff.isLoggedIn();
-      stateEl.textContent = `OK / inClient=${LINE_CONTEXT.isInClient} / loggedIn=${LINE_CONTEXT.isLoggedIn}`;
+        // チェック結果の行を作るヘルパー
+        function line(ok, label, detail = '') {
+            const icon = ok ? '✅' : '❌';
+            return `${icon} ${label}${detail ? ' - ' + detail : ''}`;
+        }
 
-      // 未ログインであればLIFFログインへ誘導（戻り先は自動）
-      if (!LINE_CONTEXT.isLoggedIn) {
-        liff.login({});
-        return; // ここで一旦終了（ログイン後に再度読み込みがかかる）
-      }
+        // 診断の本体
+        async function runLiffDiagnostics() {
+            const out = document.getElementById('diagOut');
+            const logs = [];
 
-      // プロフィール取得（scope: profile が必要）
-      try {
-        const prof = await liff.getProfile();
-        LINE_CONTEXT.userId = prof.userId || "";
-        LINE_CONTEXT.displayName = prof.displayName || "";
-        LINE_CONTEXT.pictureUrl = prof.pictureUrl || "";
-      } catch (e) {
-        console.warn("getProfile failed:", e);
-      }
+            // 現在のLIFF状態
+            const inClient = !!LINE_CONTEXT.isInClient;
+            const loggedIn = !!LINE_CONTEXT.isLoggedIn;
+            const userId = LINE_CONTEXT.userId || '';
+            const idToken = LINE_CONTEXT.idToken || '';
 
-      // OpenIDのIDトークン（scope: openid が必要）
-      LINE_CONTEXT.idToken = liff.getIDToken() || "";
+            logs.push(line(true, `liff.isInClient=${inClient}`));
+            logs.push(line(loggedIn, `liff.isLoggedIn=${loggedIn}`, loggedIn ? '' : '→ liff.login() が未実行'));
 
-      // 画面表示の整備
-      if (LINE_CONTEXT.userId) {
-        profileBox.style.display = "block";
-        profileHint.textContent = "LINE連携OK。保存時に userId / idToken を送信します。";
-        profileBox.textContent =
-          `userId: ${LINE_CONTEXT.userId}\n` +
-          `name  : ${LINE_CONTEXT.displayName}\n` +
-          `inApp : ${LINE_CONTEXT.isInClient}\n` +
-          `idToken(head): ${LINE_CONTEXT.idToken ? LINE_CONTEXT.idToken.slice(0,20)+'...' : '(none)'}`;
-      }
-    } catch (e) {
-      stateEl.textContent = "初期化エラー";
-      console.error("LIFF init error:", e);
-    }
-  }
+            // プロフィール取得結果
+            logs.push(line(!!userId, `getProfile.userId=${userId ? '取得OK' : '未取得'}`,
+                userId ? '' : '→ scope:profile が無効 / 外部ブラウザでは未取得'));
 
-  /** ==============================
-   *  7) 初期セットアップ（ページ読込時）
-   * ============================== */
-  // 日付の初期値をJSTの今日にセット
-  document.getElementById("date").value = todayJST();
-  // 右肩の数値表示を初期値に同期
-  ["energy", "focus", "satisfaction"].forEach(syncValue);
-  // LIFFを初期化
-  initLiff();
+            // IDトークンの有効性
+            if (idToken) {
+                const payload = decodeJwtPayload(idToken);
+                if (payload && payload.exp) {
+                    const now = Math.floor(Date.now() / 1000);
+                    const remain = payload.exp - now;
+                    logs.push(line(remain > 0, `ID Token 有効期限`, remain > 0 ? `残り ${Math.floor(remain / 60)} 分` : '→ 失効。再ログインが必要'));
+                    logs.push(line(true, `ID Token aud=${payload.aud || '(不明)'}`));
+                    logs.push(line(true, `ID Token sub=${payload.sub || '(不明)'}`));
+                } else {
+                    logs.push(line(false, 'ID Token 解析失敗', '→ scope:openid 無効 / 無効トークン'));
+                }
+            } else {
+                logs.push(line(false, 'ID Token なし', '→ scope:openid 無効 / OpenID Connect 未有効'));
+            }
 
-  // グローバルに公開（HTMLのonclickから呼べるように）
-  window.saveJournal = saveJournal;
-  window.exportCSV = exportCSV;
-  </script>
+            // 送信ヘッダ確認
+            logs.push(line(!!userId, `送信ヘッダ x-liff-user-id`, userId ? '付与OK' : '未設定'));
+            logs.push(line(!!idToken, `送信ヘッダ Authorization`, idToken ? '付与OK' : '未設定'));
+
+            // 代表的な失敗原因まとめ
+            if (!loggedIn) logs.push(line(false, '想定原因', 'LIFF未ログイン → init後に liff.login() が必要'));
+            if (loggedIn && !userId) logs.push(line(false, '想定原因', 'scope:profile 無効 or LINE外ブラウザ'));
+            if (loggedIn && userId && !idToken) logs.push(line(false, '想定原因', 'scope:openid 無効 / OpenID Connect 無効'));
+
+            out.textContent = logs.join('\n');
+        }
+
+        // 使いやすいようにグローバル公開
+        window.runLiffDiagnostics = runLiffDiagnostics;
+
+
+        // グローバルに公開（HTMLのonclickから呼べるように）
+        window.saveJournal = saveJournal;
+        window.exportCSV = exportCSV;
+    </script>
 </body>
 </html>
+
