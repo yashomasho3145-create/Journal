@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>📌</text></svg>">
+<title>ジャーナル</title>
+<style>
+  :root { --bg:#f6f7fb; --card:#fff; --ink:#222; --acc:#2563eb; --mut:#6b7280; }
+  body { font-family: "Hiragino Sans","Noto Sans JP",system-ui,sans-serif; background: var(--bg); color: var(--ink); margin: 24px; }
+  h1 { text-align:center; margin: 8px 0 20px; }
+  .wrap { max-width: 760px; margin: 0 auto; display: grid; gap: 16px; }
+  .card { background: var(--card); border-radius: 16px; box-shadow: 0 6px 20px rgba(0,50,50,.06); padding: 18px; }
+  .row { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 10px; margin-bottom: 12px; }
+  label { font-weight: 700; font-size: 14px; }
+  .val { min-width: 48px; text-align: right; font-feature-settings: "tnum"; color: var(--acc); font-weight: 700; }
+  input[type="date"], select, textarea { width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 10px; outline: none; }
+  input[type="range"] { width: 100%; }
+  .hint { color: var(--mut); font-size: 12px; margin-top: -6px; margin-bottom: 8px;}
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  button { padding: 12px; border-radius: 12px; border: 0; font-weight: 700; cursor: pointer; }
+  .primary { background: var(--acc); color: #fff; }
+  .ghost { background: #e5efff; color: #1e40af; }
+  .ok { color: #16a34a; margin-left: 6px; font-weight: 700; }
+  .err { color: #b91c1c; margin-left: 6px; font-weight: 700; }
+  .tag { display:inline-flex; align-items:center; gap:8px; font-size:12px; color:#334155; background:#eef2ff; border:1px solid #c7d2fe; padding:6px 10px; border-radius:999px;}
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+</style>
+<!-- ✅ LIFF SDK -->
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body>
+  <h1>ジャーナル</h1>
+  <div class="wrap">
+    <div class="card" id="who">
+      <span class="tag">🔗 LIFF: <span id="liffState">初期化中…</span></span>
+      <div class="hint" id="profileHint" style="margin-top:8px;">LINEログインが必要です。</div>
+      <div class="mono" id="profileBox" style="display:none;margin-top:6px;"></div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <label>📅 日付</label>
+        <input type="date" id="date">
+      </div>
+      <div class="hint">未選択なら「今日」で保存されます（JST）。</div>
+    </div>
+
+    <div class="card">
+      <div class="row"><label>💪 今日の行動の満足度（1〜10）</label><div class="val" id="v-energy">5</div></div>
+      <input type="range" id="energy" min="1" max="10" step="1" value="5" oninput="sync('energy')">
+
+      <div class="row"><label>😊 今日の気分（1〜10）</label><div class="val" id="v-focus">5</div></div>
+      <input type="range" id="focus" min="1" max="10" step="1" value="5" oninput="sync('focus')">
+
+      <div class="row"><label>🎯 週間スコア（1〜10）</label><div class="val" id="v-satisfaction">5</div></div>
+      <input type="range" id="satisfaction" min="1" max="10" step="1" value="5" oninput="sync('satisfaction')">
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <label>🏷️ 主なイベント</label>
+        <select id="event">
+          <option value="勉強">勉強</option>
+          <option value="仕事">仕事</option>
+          <option value="休息">休息</option>
+          <option value="遊び">遊び</option>
+          <option value="その他">その他</option>
+        </select>
+      </div>
+      <label>📝 今日の振り返り</label>
+      <textarea id="notes" placeholder="今日の気分・気づきを自由に書いてください..."></textarea>
+    </div>
+
+    <div class="btns">
+      <button class="primary" id="saveBtn" onclick="saveSheets()">📤 データベースに保存</button>
+    </div>
+    <div id="status" class="card" style="display:none;"></div>
+  </div>
+
+<script>
+/** ====== 設定 ====== */
+// 🔁 自分の LIFF ID を入れてください
+const LIFF_ID = "2008277838-PWOyWmLB";
+// n8n Webhook（既存のものを利用）
+const WEBHOOK_URL = "https://yamasho.xvps.jp/webhook";
+
+/** ====== LIFF 状態 ====== */
+let LINE_CONTEXT = {
+  isInClient: false,
+  isLoggedIn: false,
+  userId: "",
+  displayName: "",
+  pictureUrl: "",
+  idToken: "",
+};
+
+async function initLiff(){
+  const stateEl = document.getElementById("liffState");
+  try {
+    await liff.init({ liffId: LIFF_ID });
+    LINE_CONTEXT.isInClient = liff.isInClient();
+    LINE_CONTEXT.isLoggedIn = liff.isLoggedIn();
+    stateEl.textContent = `OK / inClient=${LINE_CONTEXT.isInClient} / loggedIn=${LINE_CONTEXT.isLoggedIn}`;
+
+    if (!LINE_CONTEXT.isLoggedIn) {
+      liff.login({});
+      return;
+    }
+    try {
+      const prof = await liff.getProfile();
+      LINE_CONTEXT.userId = prof.userId || "";
+      LINE_CONTEXT.displayName = prof.displayName || "";
+      LINE_CONTEXT.pictureUrl = prof.pictureUrl || "";
+    } catch {}
+    LINE_CONTEXT.idToken = liff.getIDToken() || "";
+
+    const profileBox = document.getElementById("profileBox");
+    const profileHint = document.getElementById("profileHint");
+    if (LINE_CONTEXT.userId) {
+      profileBox.style.display = "block";
+      profileHint.textContent = "LINE連携OK。保存時に userId / idToken を送信します。";
+      profileBox.textContent =
+        `userId: ${LINE_CONTEXT.userId}\n` +
+        `name  : ${LINE_CONTEXT.displayName}\n` +
+        `inApp : ${LINE_CONTEXT.isInClient}\n` +
+        `idToken(head): ${LINE_CONTEXT.idToken ? LINE_CONTEXT.idToken.slice(0,20)+'...' : '(none)'}`
+    }
+  } catch (e) {
+    stateEl.textContent = "初期化エラー";
+    console.error(e);
+  }
+}
+
+/** ====== 共通ユーティリティ ====== */
+function todayJST() {
+  const now = new Date();
+  const jst = new Date(now.getTime() - (now.getTimezoneOffset()+-540)*60000);
+  return jst.toISOString().slice(0,10);
+}
+function sync(id){
+  const v = document.getElementById(id).value;
+  const map = {
+    energy:'v-energy', focus:'v-focus', satisfaction:'v-satisfaction',
+    stress:'v-stress', condition:'v-condition', exercise:'v-exercise',
+    social:'v-social', sleep_hours:'v-sleep', phone_hours:'v-phone',
+    out_hours:'v-out', productive_hours:'v-prod', rest_hours:'v-rest'
+  };
+  const dispId = map[id];
+  if (dispId) document.getElementById(dispId).textContent = v;
+}
+function pick(id){ return document.getElementById(id).value; }
+
+function payload(){
+  const d = document.getElementById("date").value || todayJST();
+  return {
+    date: d,
+    sleep_hours: +pick("sleep_hours"),
+    energy: +pick("energy"),
+    satisfaction: +pick("satisfaction"),
+    focus: +pick("focus"),
+    stress: +pick("stress"),
+    social: +pick("social"),
+    out_hours: +pick("out_hours"),
+    phone_hours: +pick("phone_hours"),
+    exercise: +pick("exercise"),
+    condition: +pick("condition"),
+    event: pick("event"),
+    productive_hours: +pick("productive_hours"),
+    rest_hours: +pick("rest_hours"),
+    notes: pick("notes").replace(/\n/g," ").slice(0, 1000),
+
+    // 追加: LIFF情報（n8nで user_id 紐付けに使える）
+    liff: {
+      isInClient: LINE_CONTEXT.isInClient,
+      isLoggedIn: LINE_CONTEXT.isLoggedIn,
+      userId: LINE_CONTEXT.userId,
+      displayName: LINE_CONTEXT.displayName,
+    }
+  };
+}
+
+/** ====== 保存処理 ====== */
+async function saveSheets(){
+  const st = document.getElementById("status");
+  st.style.display = "block";
+  st.textContent = "データベースに送信中…";
+
+  const body = payload();
+
+  try{
+    const res = await fetch(WEBHOOK_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type":"application/json",
+        ...(LINE_CONTEXT.idToken ? { "Authorization": `Bearer ${LINE_CONTEXT.idToken}` } : {}),
+        "x-liff-user-id": LINE_CONTEXT.userId || "",
+        "x-liff-client": LINE_CONTEXT.isInClient ? "1" : "0",
+      },
+      body: JSON.stringify(body)
+    });
+    if(!res.ok){ throw new Error("HTTP "+res.status); }
+    await res.text();
+    st.innerHTML = `✅ 保存完了 <span class="ok">OK</span>`;
+
+    if (liff.isInClient && liff.sendMessages) {
+      try {
+        await liff.sendMessages([{ type: "text", text: `保存しました：${body.date}` }]);
+      } catch (_) {}
+    }
+  }catch(e){
+    st.innerHTML = `⚠️ 保存失敗 <span class="err">${e.message}</span><div class="hint">n8n Webhook / LIFF設定（profile/openid）を確認してください。</div>`;
+  }
+}
+
+/** ====== CSV エクスポート ====== */
+function exportCSV(){
+  const headers = ["date","sleep_hours","energy","satisfaction","focus","stress","social","out_hours","phone_hours","exercise","condition","event","productive_hours","rest_hours","notes","userId"];
+  const p = payload();
+  const line = headers.map(h => (h==="userId" ? (LINE_CONTEXT.userId||"") : p[h])).join(",");
+  const csv = headers.join(",") + "\n" + line;
+  const blob = new Blob([csv], {type:"text/csv"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `habit_${p.date}.csv`;
+  a.click();
+}
+
+/** ====== 初期化 ====== */
+document.getElementById("date").value = todayJST();
+["energy","focus","satisfaction","stress","condition","exercise","social","sleep_hours","phone_hours","out_hours","productive_hours","rest_hours"].forEach(sync);
+initLiff();
+</script>
+</body>
+</html>
+
+
+
