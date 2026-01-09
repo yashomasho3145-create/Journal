@@ -2,34 +2,32 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>COMPLETED Stamp Test</title>
+  <title>COMPLETED Stamp Test (No White)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
-    /* ===== ページ全体（確認用背景） ===== */
+    /* ===== 確認用背景 ===== */
     body {
       margin: 0;
       height: 100vh;
-      background: #0a8f55; /* 緑背景で透過・重なり確認 */
+      background: #00ff00; /* 緑背景 */
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: sans-serif;
     }
 
-    /* ===== ハンコ全体 ===== */
+    /* ===== ハンコ本体 ===== */
     .stamp {
       position: relative;
       display: inline-block;
       padding: 20px 38px;
       border: 6px solid #c40000;
       transform: rotate(-12deg);
-      opacity: 0.9;
-      filter: contrast(1.1) saturate(1.1);
+      opacity: 0.92;
       background: transparent;
     }
 
-    /* 内側の二重枠 */
+    /* 内枠 */
     .stamp::before {
       content: "";
       position: absolute;
@@ -47,23 +45,27 @@
       letter-spacing: 3px;
       color: #c40000;
       text-transform: uppercase;
-
-      /* インクのムラ・掠れ */
-      text-shadow:
-        1px 1px 0 rgba(150, 0, 0, 0.8),
-        -1px -1px 0 rgba(150, 0, 0, 0.6),
-        0 2px 1px rgba(0, 0, 0, 0.15);
+      z-index: 1;
     }
 
-    /* 掠れドット（ハンコ感の決め手） */
+    /* ===== 掠れ（白を描かない方式） ===== */
     .stamp::after {
       content: "";
       position: absolute;
-      inset: -10px;
+      inset: -8px;
+
+      /* 黒＝削る / 透明＝残す マスク */
       background-image:
-        radial-gradient(rgba(0,0,0,0.18) 1px, transparent 1px);
-      background-size: 6px 6px;
-      mix-blend-mode: multiply;
+        radial-gradient(circle at 20% 30%, rgba(0,0,0,0.25) 0 2px, transparent 3px),
+        radial-gradient(circle at 70% 60%, rgba(0,0,0,0.22) 0 2px, transparent 3px),
+        radial-gradient(circle at 40% 80%, rgba(0,0,0,0.18) 0 2px, transparent 3px),
+        radial-gradient(circle at 85% 25%, rgba(0,0,0,0.2) 0 2px, transparent 3px);
+
+      background-size: 18px 18px;
+      opacity: 0.45;
+
+      /* ここが肝：色を足さず、削る */
+      mix-blend-mode: destination-out;
       pointer-events: none;
     }
   </style>
@@ -71,9 +73,8 @@
 
 <body>
 
-  <!-- ===== ハンコ表示 ===== -->
   <div class="stamp">
-    <span>COMPLETED</span>
+    <span>COMPLETE</span>
   </div>
 
 </body>
